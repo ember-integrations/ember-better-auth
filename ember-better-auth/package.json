@@ -1,0 +1,88 @@
+{
+  "name": "ember-better-auth",
+  "version": "0.0.0",
+  "description": "",
+  "license": "MIT",
+  "author": "Thomas Gossmann",
+  "repository": "https://github.com/gossi/ember-ability",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "imports": {
+    "#src": "./src/index",
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./registry": {
+      "types": "./dist/registry.d.ts",
+      "default": "./dist/registry.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "lint": "pnpm run '/^lint:(?!.*(fix)).*$/'",
+    "lint:fix": "pnpm run '/^lint:[^:]*:fix/'",
+    "lint:js": "eslint . --cache",
+    "lint:js:fix": "eslint . --fix",
+    "lint:types": "glint",
+    "prepack": "pnpm build",
+    "start": "tsdown --watch",
+    "dev": "vite dev",
+    "test": "vite build --mode test && testem ci --port 0"
+  },
+  "dependencies": {
+    "decorator-transforms": "^2.3.0",
+    "ember-resources": "^7.0.7",
+    "ember-strict-application-resolver": "^0.1.0"
+  },
+  "peerDependencies": {
+    "better-auth": "^1.3.7"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.3",
+    "@babel/eslint-parser": "^7.28.0",
+    "@babel/plugin-transform-typescript": "^7.28.0",
+    "@babel/runtime": "^7.28.3",
+    "@ember/app-tsconfig": "^1.0.3",
+    "@ember/library-tsconfig": "^1.1.3",
+    "@ember/test-helpers": "^5.2.2",
+    "@embroider/core": "^4.1.3",
+    "@embroider/macros": "^1.18.1",
+    "@embroider/vite": "^1.2.0",
+    "@glint/core": "^2.0.0-alpha.4",
+    "@glint/environment-ember-loose": "^2.0.0-alpha.3",
+    "@glint/environment-ember-template-imports": "^2.0.0-alpha.3",
+    "@glint/template": "^1.6.0-alpha.2",
+    "@gossi/config-eslint": "^1.3.0",
+    "@gossi/config-prettier": "^1.1.0",
+    "@gossi/config-targets": "^1.1.0",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@types/qunit": "^2.19.13",
+    "babel-plugin-ember-template-compilation": "^3.0.1",
+    "better-auth": "^1.3.7",
+    "ember-qunit": "^9.0.3",
+    "ember-source": "^6.6.0",
+    "ember-template-lint": "^7.9.3",
+    "eslint": "^9.34.0",
+    "eslint-plugin-ember": "^12.7.3",
+    "eslint-plugin-qunit": "^8.2.5",
+    "prettier": "^3.6.2",
+    "qunit": "^2.24.1",
+    "qunit-dom": "^3.5.0",
+    "testem": "^3.15.1",
+    "tsdown": "^0.14.2",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3"
+  },
+  "engines": {
+    "node": "^20.11.0 || >=22"
+  }
+}

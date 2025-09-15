@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ember-better-auth</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./src/styles/app.css" />
+  </head>
+  <body>
+    <script type="module">
+      import { createApp, start } from './src/app';
+      import { configure } from './src/config';
+
+      const app = createApp();
+
+      configure(app);
+      start(app);
+    </script>
+  </body>
+</html>
