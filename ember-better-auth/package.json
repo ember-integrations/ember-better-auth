@@ -36,7 +36,7 @@
     "prepack": "pnpm build",
     "start": "tsdown --watch",
     "dev": "vite dev",
-    "test": "vite build --mode test && testem ci --port 0"
+    "_test": "vite build --mode test && testem ci --port 0"
   },
   "dependencies": {
     "decorator-transforms": "^2.3.0",
