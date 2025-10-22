@@ -2,15 +2,29 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsdown"
+    "build": "tsdown",
+    "lint": "pnpm run '/^lint:(?!.*(fix)).*$/'",
+    "lint:fix": "pnpm run '/^lint:[^:]*:fix/'",
+    "lint:js": "eslint . --cache",
+    "lint:js:fix": "eslint . --fix",
+    "lint:types": "tsc --noEmit"
   },
   "devDependencies": {
     "@better-auth/cli": "^1.3.7",
+    "@gossi/config-eslint": "^1.3.1",
+    "@gossi/config-prettier": "^1.1.1",
     "@hono/node-server": "^1.19.0",
+    "@tsconfig/strictest": "^2.0.6",
+    "@types/better-sqlite3": "^7.6.13",
     "better-auth": "^1.3.7",
     "better-sqlite3": "^12.2.0",
+    "eslint": "^9.38.0",
+    "prettier": "^3.6.2",
     "hono": "^4.9.4",
     "tsdown": "^0.14.2",
     "tsx": "^4.7.1"
+  },
+  "engines": {
+    "node": "^20.11.0 || >=22"
   }
 }

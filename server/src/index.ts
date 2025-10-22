@@ -6,8 +6,7 @@ import { logger } from 'hono/logger';
 
 const app = new Hono();
 
-app.use(logger())
-// app.use('/api/auth/*', cors());
+app.use(logger());
 
 app.use(
 	"/api/auth/*", // or replace with "*" to enable cors for all routes
