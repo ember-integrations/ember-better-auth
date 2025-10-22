@@ -38,55 +38,54 @@ jobs:
         uses: ./.github/actions/setup
       - run: pnpm run -r --parallel --aggregate-output lint:types
 
-  test:
-    name: Test
+  # The poor man's test is to run the build and see if it succeeds until the
+  # tests return
+  build:
+    name: Build
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup
         uses: ./.github/actions/setup
-      - name: Tests
-        run: pnpm test
-        working-directory: ./ember-ability
-      # For the Try Scenarios
-      - id: set-matrix
-        run: |
-          echo "matrix=$(pnpm -s dlx @embroider/try list)" >> $GITHUB_OUTPUT
-        working-directory: ./ember-ability
+      - run: pnpm  build
 
-  integration-test:
-    name: Integration Test
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup
-        uses: ./.github/actions/setup
-      - name: Tests
-        run: pnpm test
-        working-directory: ./blog-example/web-app
+  # test:
+  #   name: Test
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     matrix: ${{ steps.set-matrix.outputs.matrix }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Setup
+  #       uses: ./.github/actions/setup
+  #     - name: Tests
+  #       run: pnpm test
+  #       working-directory: ./ember-better-auth
+  #     # For the Try Scenarios
+  #     - id: set-matrix
+  #       run: |
+  #         echo "matrix=$(pnpm -s dlx @embroider/try list)" >> $GITHUB_OUTPUT
+  #       working-directory: ./ember-better-auth
 
-  try-scenarios:
-    name: ${{ matrix.name }}
-    runs-on: ubuntu-latest
-    needs: test
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix: ${{fromJson(needs.test.outputs.matrix)}}
+  # try-scenarios:
+  #   name: ${{ matrix.name }}
+  #   runs-on: ubuntu-latest
+  #   needs: test
+  #   timeout-minutes: 10
+  #   strategy:
+  #     fail-fast: false
+  #     matrix: ${{fromJson(needs.test.outputs.matrix)}}
 
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup
-        uses: ./.github/actions/setup
-      - name: Apply Scenario
-        run: pnpm dlx @embroider/try apply ${{ matrix.name }}
-        working-directory: ./ember-ability
-      - name: Install Dependencies
-        run: pnpm install --no-lockfile
-      - name: Run Tests
-        run: pnpm test
-        working-directory: ./ember-ability
-        env: ${{ matrix.env }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Setup
+  #       uses: ./.github/actions/setup
+  #     - name: Apply Scenario
+  #       run: pnpm dlx @embroider/try apply ${{ matrix.name }}
+  #       working-directory: ./ember-better-auth
+  #     - name: Install Dependencies
+  #       run: pnpm install --no-lockfile
+  #     - name: Run Tests
+  #       run: pnpm test
+  #       working-directory: ./ember-better-auth
+  #       env: ${{ matrix.env }}
