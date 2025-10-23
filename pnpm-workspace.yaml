@@ -1,4 +1,3 @@
 packages:
   - ember-better-auth/
-  - server/
-  - web/
+  - example/*
