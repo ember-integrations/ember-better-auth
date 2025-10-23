@@ -16,7 +16,9 @@ ember install ember-better-auth better-auth
 
 ## Example
 
-This repo contains an example for a server with Hono and a web app with Ember.
+This repo contains an
+[example](https://github.com/ember-integrations/ember-better-auth/tree/main/example)
+for a server with Hono and a web app with Ember.
 
 ## Setup
 
