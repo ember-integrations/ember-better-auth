@@ -1,10 +1,17 @@
 {
   "name": "ember-better-auth",
   "version": "0.0.0",
-  "description": "",
+  "description": "Integrate better-auth with ember.js",
+  "keywords": [
+    "ember-addon",
+    "auth",
+    "oauth",
+    "oidc",
+    "better-auth"
+  ],
   "license": "MIT",
   "author": "Thomas Gossmann",
-  "repository": "https://github.com/gossi/ember-ability",
+  "repository": "https://github.com/ember-integrations/ember-better-auth",
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
   },
