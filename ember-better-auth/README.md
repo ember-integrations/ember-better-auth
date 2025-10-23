@@ -14,6 +14,10 @@ system, while at the same time mimicing the API from
 ember install ember-better-auth better-auth
 ```
 
+## Example
+
+This repo contains an example for a server with Hono and a web app with Ember.
+
 ## Setup
 
 This setup expects the server for better-auth is already done and
