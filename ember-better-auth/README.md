@@ -1,247 +1,356 @@
-# ember-ability
+# ember-better-auth
 
-Connect your plain guards, questions or abilities with Ember's DI system, the
-owner.
-
-The successor to [`ember-can`](https://github.com/minutebase/ember-can).
+Integrates [`better-auth`](https://www.better-auth.com/) with Ember's reactivity
+system, while at the same time mimicing the API from
+[`ember-simple-auth`](https://ember-simple-auth.com/).
 
 ## Compatibility
 
-- Ember.js v3.28 or above
-- Embroider or ember-auto-import v2
+- Ember.js with vite
 
 ## Installation
 
 ```sh
-ember install ember-ability
+ember install ember-better-auth better-auth
 ```
 
-## Example
+## Setup
 
-Let's say we want to put a link to registration, but only when the user is not
-already logged in. We have an ability `canRegister`, which is based on the
-`isAuthenticated` from `session` service from
-[`ember-simple-auth`](https://github.com/simplabs/ember-simple-auth):
+This setup expects the server for better-auth is already done and
+operationg on `http://localhost:3000`. This setup will guide you configuring
+better-auth for ember on the client side.
+
+### 1. Auth Service
+
+`ember-better-auth` provides an `AuthService` that you need to use and configure
+to your liking and load the service according to the [Strict Reslover
+RFC](https://rfcs.emberjs.com/id/1132-default-strict-resolver).
+
+#### A) Use the Registry
+
+`ember-better-auth` ships with a registry function for usage with the
+[`ember-strict-application-resolver`](https://github.com/ember-cli/ember-strict-application-resolver)
+package.
 
 ```ts
-const canRegister = ability(({ services }) => () => {
-  const { session } = services;
+// src/app.ts
+import EmberApp from 'ember-strict-application-resolver';
 
-  return !session.isAuthenticated;
+import { authRegistry } from 'ember-better-auth/registry';
+
+class Router extends EmberRouter {
+  location = 'history';
+  rootURL = '/';
+}
+
+Router.map(function () {
+  // your routes
 });
 
-<template>
-  {{#if (canRegister)}}
-    <LinkTo @route="registration">Register</LinkTo>
-  {{/if}}
-</template>
-```
-
-Wait? The `Owner` does not provide destructuring by default, what is happening
-here? Since in an ability we are interesting in reading information, we can
-utilize a read API of the owner, with syntactical _sugar_ from
-[`ember-sweet-owner`](https://github.com/gossi/ember-sweet-owner).
-
-## Real World Usage
-
-At best - and this is what `ember-ability` is created for - is to connect an
-existing business logic available in plain js/ts with Ember. In a blog
-engine, we want to control editing of a blog post. As business logic is
-considered to be _pure_, here is the relevant snippet:
-
-```ts
-// @my-blog/core
-
-export interface User {
-  id: number;
-  givenName: string;
-  familyName: string;
-  admin: boolean;
-}
-
-export interface Post {
-  id: string;
-  author: User;
-  title: string;
-  content: string;
-}
-
-export function canEdit(post: Post, user: User) => {
-  return post.author.id === user.id || user.admin;
+export default class App extends EmberApp {
+  modules = {
+    './router': { default: Router },
+    ...authRegistry(),
+    ...import.meta.glob('./services/**/*', { eager: true }),
+    ...import.meta.glob('./routes/**/*', { eager: true }),
+    ...import.meta.glob('./templates/**/*', { eager: true })
+  };
 }
 ```
 
-The `canEdit` function controls whether this functionality is available to a
-given user. Since this is plain typescript, this can be properly unit tested to
-ensure business logic works as expected.
+#### B) Your own Service (for your own User type)
 
-In an Ember world, the `User` is available via service. Let's say as
-`currentUser` of the `user` service. And we can use the above function like so:
+This is great if you already have a `User` type you want to use, and/or
+you defined custom fields for your user, then this is a way to expand the types
+provided by better-auth
 
 ```ts
+// src/domain/user.ts
+import type { BetterAuthUser } from 'ember-better-auth';
+
+export interface User extends BetterAuthUser {
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  givenName?: string;
+  familyName?: string;
+}
+```
+
+Then extend the `auth` service and configure it with the `User` type.
+
+```ts
+// src/services/auth.ts
+import { AuthService as UpstreamAuthService } from 'ember-better-auth';
+
+import type { User } from '../domain/user';
+
+export default class AuthService extends UpstreamAuthService<User> {}
+
+declare module '@ember/service' {
+  interface Registry {
+    auth: AuthService;
+  }
+}
+```
+
+Don't forget to load this service as part of your registry.
+
+### 2. Auth Client
+
+Start by creating an `authClient`:
+
+```ts
+// src/auth.ts
+import { createAuthClient } from 'better-auth/client';
+
+// here you configure your auth client, eg. plugins you plan to use
+export const auth = createAuthClient({
+  baseURL: 'http://localhost:3000'
+});
+```
+
+### 3. Connect Auth Client with Auth Service
+
+Now that the client and the service are ready, let's connect them, so they know
+each other. Here again, there are two places in which you can do that
+
+#### A) In `ApplicationRoute`
+
+That's the place you know where to configure your app:
+
+```ts
+// src/routes/application.ts
+import Route from '@ember/routing/route';
+import { service } from '@ember/service';
+import { auth } from '../auth';
+
+import type AuthService from '../services/auth';
+
+export default class ApplicationRoute extends Route {
+  @service('auth') declare authService: AuthService;
+
+  async beforeModel() {
+    authService.setup(auth);
+  }
+}
+```
+
+#### B) Use App config
+
+A slightly different approach is to stop the autoboot for your app and configure
+it a bit more verbose:
+
+```ts
+// src/app.ts
+
+// see above
+
+export function createApp(options: Record<string, unknown> = {}) {
+  const app = App.create({ ...options, autoboot: false });
+
+  return app.buildInstance();
+}
+
+export async function start(instance: ApplicationInstance) {
+  await instance.boot();
+
+  instance.startRouting();
+}
+```
+
+then start your app in `index.html`:
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- snip-->
+  </head>
+  <body>
+    <script type="module">
+      import { createApp, start } from './src/app';
+      import { configure } from './src/config';
+
+      const app = createApp();
+
+      configure(app);
+      start(app);
+    </script>
+  </body>
+</html>
+```
+
+And then have a dedicated config:
+
+```ts
+// src/config.ts
+import { auth } from './auth';
+
+import type ApplicationInstance from '@ember/application/instance';
+
+function configureAuth(app: ApplicationInstance) {
+  const authService = app.lookup('service:auth');
+
+  authService.setup(auth);
+}
+
+export function configure(app: ApplicationInstance) {
+  configureAuth(app);
+
+  // more configs, yay :party:
+  // configureIntl(app)
+}
+```
+
+## Usage
+
+For most parts, you can import the `auth` client directly and follow the
+better-auth documentation.
+
+The interesting bit is that the `auth` client is connected with the
+`AuthService` which itself tracks a users logged in state and can react to it.
+
+### Showing the Logged in User
+
+So here is the application route showing the logged in user in the header of the
+Page.
+
+```glimmer-ts
+// src/templates/application.gts
 import Component from '@glimmer/component';
-import UserService from '@my-blog/ember-app/services/user';
-import { canEdit } from '@my-blog/core';
+import { service } from '@ember/service';
 
-export default class AppNavigation extends Component {
-  @service declare user: UserService;
-  
+import type AuthService from '../services/auth';
+
+export default class ApplicationRoute extends Component {
+  @service declare auth: AuthService;
+
   <template>
-    {{#if (canEdit @post this.user.currentUser)}}
-      <LinkTo @route="post.edit" @model={{@post}}>Edit Post</LinkTo>
-    {{/if}}
+    <header>
+      {{#if this.auth.authenticated}}
+        Hi {{this.auth.user.name}}
+
+        <Link @href="/user/profile">Profile</Link>
+        <Link @href="/user/sessions">Sessions</Link>
+
+        <Link @href="/user/logout">Logout</Link>
+      {{else}}
+        <Link @href="/login">Login</Link>
+      {{/if}}
+    </header>
+
+    {{outlet}}
   </template>
 }
 ```
 
-But this is cumbersome, with the usage of `ember-ability`, the API can be
-reduced to a minimum:
+### Login
 
-```ts
-import { canEdit as upstreamCanEdit} from '@my-blog/core';
-import { ability } from 'ember-ability';
+Here is a login route using the
+[`action()`](https://gossi.github.io/ember-command/actions.html) from
+[`ember-command`](https://github.com/gossi/ember-command):
 
-const canEdit = ability(({ services }) => 
-  (post: Post) => upstreamCanEdit(post, services.user.currentUser)
+```glimmer-ts
+// src/templates/login.gts
+import { action } from 'ember-command';
+
+import { FocusPage, Form } from '@hokulea/ember';
+
+import { auth } from '../auth';
+
+const login = action(
+  ({ services: { router } }) =>
+    async (data: { email: string; password: string }) => {
+      await auth.signIn.email(data, {
+        onSuccess: () => {
+          router.transitionTo('user.profile');
+        }
+      });
+    }
 );
 
 <template>
-  {{#if (canEdit @post)}}
-    <LinkTo @route="post.edit" @model={{@post}}>Edit Post</LinkTo>
-  {{/if}}
+  <FocusPage @title="Login">
+    <Form @submit={{(login)}} as |f|>
+      <f.Email @name="email" @label="Email" required />
+
+      <f.Password @name="password" @label="Password" required />
+
+      <f.Submit>Login</f.Submit>
+    </Form>
+  </FocusPage>
 </template>
 ```
 
-Code for the example is available in two packages:
+### Logout
 
-- [`@my-blog/core`](https://github.com/gossi/ember-ability/tree/main/blog-example/core) - Contains the entire business logic + fixtures
-- [`@my-blog/web-app`](https://github.com/gossi/ember-ability/tree/main/blog-example/web-app) - The ember app with `ability()`
-
-## Migration from `ember-can`
-
-As `ember-ability` is the successor to `embe-can` here is a practical guide to
-migrate over`. This is a two step process, to properly plan tech debt tickets.
-
-The guide focuses on the `PostAbility`:
+Logging out people using the logout route:
 
 ```ts
-// app/abilities/post.ts
-
+// src/routes/user/logout.ts
+import Route from '@ember/routing/route';
 import { service } from '@ember/service';
-import { Ability } from 'ember-can';
-import UserService from '../services/user';
 
-export default class PostAbility extends Ability {
-  @service declare user: UserService;
+import type AuthService from '../../services/auth';
 
-  get canEdit() {
-    return this.user.currentUser.admin || this.model.author.id === this.user.currentUser.id;
+export default class LogoutRoute extends Route {
+  @service declare auth: AuthService;
+
+  async beforeModel() {
+    await this.auth.client.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          this._router.transitionTo('application');
+        }
+      }
+    });
   }
 }
 ```
 
-### 1. Extract Pure Ability
+### Protected Routes
 
-As first step, extract the `canEdit` accessor into its own function. At this
-point you _should_ consider creating a plain js/ts package, that holds your
-business logic. A pure package has proven to be the best place. Type your `Post`
-and `User` objects. Move focus to the signature of your pure ability functions.
+The auth service can verify if the user is logged in and allow routing based on
+that check. From the example above, let's make every `/user/*` route protected
+for only logged in users
 
 ```ts
-// @blog/core/post/abilities.ts
-
-import type { Post } from '../post';
-import type { User } from '../../user';
-
-export function canEdit(post: Post, user: User) {
-  return user.admin || post.author.id === user.id;
-}
-```
-
-Next step would be to create fixtures for `User` and `Post`. Don't use
-fake-data. Record real traffic from your apps and store these payloads as
-fixtures. With production-like fixtures, write unit tests for the function
-above.
-
-In a second effort use the unit-tested function in the `PostAbility`
-
-```diff
-// @blog/app/abilities/post.ts
-
+// src/routes/user.ts
+import Route from '@ember/routing/route';
 import { service } from '@ember/service';
-import { Ability } from 'ember-can';
-import UserService from '../services/user';
-+ import { canEdit } from '@blog/core/post/abilities';
 
-export default class PostAbility extends Ability {
-  @service declare user: UserService;
+import type AuthService from '../services/auth';
+import type Transition from '@ember/routing/transition';
 
-  get canEdit() {
--    return this.user.currentUser.admin || this.model.author.id === this.user.currentUser.id;
-+    return canEdit(this.model, this.user.currentUser);
+export default class UserRoute extends Route {
+  @service declare auth: AuthService;
+
+  async beforeModel(transition: Transition) {
+    const authenticated = await this.auth.requireAuthentication(transition);
+
+    if (!authenticated) {
+      this._router.transitionTo('login');
+    }
   }
 }
 ```
 
-### 2. Replace `ember-can` with `ember-ability`
+### Reacting to Login/Logout Events
 
-When replacing an `ember-can` ability class with many functions, these newly
-created abilities can either live organized together in one module or folder,
-for re-use in many locations - or locally on the component/route. Both
-approaches will be explained in the following, also with the two ways to connect
-them to your components: co-located templates and single file components.
-
-#### Using Co-located Templates
-
-When using co-located templates, the backing class will pipe the ability into
-the template. In this scenario, the ability is placed into its own module.
+The `AuthService` emits events on certain ocasions you can subscribe to. For
+example to route people after login/logout.
 
 ```ts
-// app/abilities/post.ts
+// in your configure
 
-import { ability } from 'ember-ability';
-import { canEdit as upstreamCanEdit } from '@blog/core/post/abilities';
+function configureAuth(auth: AuthService) {
+  auth.subscribe('sessionAuthenticated', (user) => {
+    // do sth with `user`
+  });
 
-export const canEdit = ability(({ services }) => 
-  (post: Post) => upstreamCanEdit(post, services.user.currentUser)
-);
-```
-
-... and use the backing class to pipe the ability into the template...
-
-```ts
-import { canEdit } from 'app/abilities/post';
-
-export class Post extends Component {
-  canEdit = canEdit;
+  auth.subscribe('sessionInvalidated', () => {
+    // user is logged out - maybe route them?
+  });
 }
-```
-
-... to use it in the template:
-
-```hbs
-{{#if (this.canEdit @post)}}
-  <LinkTo @route="post.edit" @model={{@post}}>Edit Post</LinkTo>
-{{/if}}
-```
-
-#### Using Single File Compponents (SFC)
-
-SFCs allow to keep things local in one file, let's do so:
-
-```ts
-import { ability } from 'ember-ability';
-import { canEdit as upstreamCanEdit } from '@blog/core/post/abilities';
-
-export const canEdit = ability(({ services }) => 
-  (post: Post) => upstreamCanEdit(post, services.user.currentUser)
-);
-
-<template>
-  ...
-
-  {{#if (canEdit @post)}}
-    <LinkTo @route="post.edit" @model={{@post}}>Edit Post</LinkTo>
-  {{/if}}
-</template>
 ```
