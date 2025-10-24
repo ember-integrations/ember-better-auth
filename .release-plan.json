@@ -1,0 +1,18 @@
+{
+  "solution": {
+    "ember-better-auth": {
+      "impact": "patch",
+      "oldVersion": "0.0.0",
+      "newVersion": "0.0.1",
+      "tagName": "latest",
+      "constraints": [
+        {
+          "impact": "patch",
+          "reason": "Appears in changelog section :memo: Documentation"
+        }
+      ],
+      "pkgJSONPath": "./ember-better-auth/package.json"
+    }
+  },
+  "description": "## Release (2025-10-24)\n\n* ember-better-auth 0.0.1 (patch)\n\n#### :memo: Documentation\n* `ember-better-auth`\n  * [#6](https://github.com/ember-integrations/ember-better-auth/pull/6) Correct some documentation links ([@gossi](https://github.com/gossi))\n\n#### :house: Internal\n* [#7](https://github.com/ember-integrations/ember-better-auth/pull/7) Fix release-plan ([@gossi](https://github.com/gossi))\n\n#### Committers: 1\n- Thomas Gossmann ([@gossi](https://github.com/gossi))\n"
+}
