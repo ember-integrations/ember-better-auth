@@ -1,5 +1,5 @@
 {
-  "name": "web-app",
+  "name": "@example/web",
   "private": true,
   "license": "MIT",
   "type": "module",
