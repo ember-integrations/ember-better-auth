@@ -39,7 +39,7 @@
     "lint:fix": "pnpm run '/^lint:[^:]*:fix/'",
     "lint:js": "eslint . --cache",
     "lint:js:fix": "eslint . --fix",
-    "lint:types": "glint",
+    "lint:types": "ember-tsc --noEmit",
     "prepack": "pnpm build",
     "start": "tsdown --watch",
     "dev": "vite dev",
