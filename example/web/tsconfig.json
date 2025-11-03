@@ -5,12 +5,6 @@
     "tests",
     "types"
   ],
-  "glint": {
-    "environment": [
-      "ember-loose",
-      "ember-template-imports"
-    ]
-  },
   "compilerOptions": {
     "allowJs": true,
     "paths": {
@@ -24,6 +18,7 @@
     "types": [
       "ember-source/types",
       "@embroider/core/virtual",
+      "@glint/ember-tsc/types",
       "vite/client"
     ]
   },
