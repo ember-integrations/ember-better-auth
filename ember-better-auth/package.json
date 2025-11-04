@@ -1,6 +1,6 @@
 {
   "name": "ember-better-auth",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Integrate better-auth with ember.js",
   "keywords": [
     "ember-addon",
