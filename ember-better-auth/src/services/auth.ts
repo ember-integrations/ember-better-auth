@@ -51,6 +51,10 @@ export class AuthService<User extends BetterAuthUser = BetterAuthUser> extends S
     return Boolean(this.user !== undefined);
   }
 
+  get session(): Session | undefined {
+    return this.internalData?.session;
+  }
+
   subscribe<E extends keyof AuthEvents<User>>(event: E, cb: Subscriber<AuthEvents<User>, E>) {
     this.#publisher.subscribe(event, cb);
   }
