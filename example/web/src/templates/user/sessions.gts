@@ -3,9 +3,18 @@ import { service } from '@ember/service';
 
 import { getPromiseState } from 'reactiveweb/get-promise-state';
 
-import { Card, Page } from '@hokulea/ember';
+import { auth } from '#/auth';
+
+import { Button, Card, Page } from '@hokulea/ember';
 
 import type AuthService from '#/services/auth';
+
+const revokeOtherSessions = auth.revokeOtherSessions;
+const revokeSessions = async () => {
+  // see: https://github.com/better-auth/better-auth/issues/5741
+  await auth.revokeSessions();
+  await auth.signOut();
+};
 
 export default class Sessions extends Component {
   @service declare auth: AuthService;
@@ -16,6 +25,14 @@ export default class Sessions extends Component {
   <template>
     <Page>
       <h1>Sessions</h1>
+
+      <Button @push={{revokeOtherSessions}}>
+        Revoke other sessions
+      </Button>
+      <Button @push={{revokeSessions}}>
+        Revoke all sessions
+      </Button>
+
       {{#if this.state.resolved}}
         {{#each this.state.resolved.data as |s|}}
           <Card>

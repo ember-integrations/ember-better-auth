@@ -7,12 +7,6 @@ export default class LogoutRoute extends Route {
   @service declare auth: AuthService;
 
   async beforeModel() {
-    await this.auth.client.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          this._router.transitionTo('application');
-        }
-      }
-    });
+    await this.auth.client.signOut();
   }
 }

@@ -12,7 +12,7 @@ app.use(logger());
 app.use(
   '/api/auth/*', // or replace with "*" to enable cors for all routes
   cors({
-    origin: 'http://localhost:4200', // replace with your origin
+    origin: ['http://localhost:4200', 'http://localhost:4201'], // replace with your origin
     allowHeaders: ['Content-Type', 'Authorization'],
     allowMethods: ['POST', 'GET', 'OPTIONS'],
     exposeHeaders: ['Content-Length'],
